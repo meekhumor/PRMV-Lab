@@ -1,0 +1,498 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% Header / Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{PRMV Lab}
+\lhead{Pattern Recognition \& Machine Vision}
+\cfoot{\thepage}
+
+% Section formatting
+\titleformat{\section}{\large\bfseries}{Experiment \thesection:}{0.5em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+% Code style
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  breaklines=true,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  numbers=none
+}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\title{\textbf{Pattern Recognition \& Machine Vision}\\[0.5em]
+\large Laboratory Experiments Write-Up}
+\author{PRMV Lab}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+%=============================================================
+\section{Feature Extraction from Images and Signals}
+%=============================================================
+
+\subsection*{Aim}
+To implement basic feature extraction techniques (mean, variance, and histogram features)
+and visualize feature distributions using image or signal datasets.
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Load all images from the \texttt{images/} directory using \texttt{glob}.
+  \item Convert each image to grayscale using \texttt{cv2.IMREAD\_GRAYSCALE}.
+  \item For each image, compute:
+    \begin{itemize}
+      \item \textbf{Mean}: \texttt{np.mean(img)} — average pixel intensity.
+      \item \textbf{Variance}: \texttt{np.var(img)} — spread of pixel values.
+      \item \textbf{Histogram}: \texttt{cv2.calcHist()} — 256-bin pixel intensity distribution.
+    \end{itemize}
+  \item Store features in separate lists.
+  \item Plot bar charts for mean and variance per image, and a line plot for the average histogram.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+\begin{itemize}
+  \item Bar chart of \textbf{mean pixel intensity} per image.
+  \item Bar chart of \textbf{variance} per image.
+  \item Line plot of the \textbf{average histogram} across all images (pixel intensity 0--255 on x-axis).
+\end{itemize}
+
+\noindent Sample feature values (approximate):
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Image} & \textbf{Mean (approx.)} & \textbf{Variance (approx.)} \\
+\midrule
+car.jpg       & 140 & 3500 \\
+cat.jpg       & 160 & 3000 \\
+dandelion.jpg & 170 & 2800 \\
+dog.jpg       & 130 & 4000 \\
+fish.jpg      & 150 & 3200 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Result}
+Feature extraction was successfully implemented on a set of grayscale images. Mean pixel intensity
+reflected image brightness, variance represented contrast and texture richness, and the histogram
+provided a complete distribution of pixel intensities. These features form the foundation for image
+classification in subsequent experiments.
+
+\newpage
+
+%=============================================================
+\section{Two-Class Gaussian Bayes Classifier}
+%=============================================================
+
+\subsection*{Aim}
+To implement a Bayes classifier for two classes (Flower and Dog) using Gaussian distributions
+to compute posterior probabilities and evaluate classification accuracy.
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Load images from \texttt{flower/} (Class 0) and \texttt{dog/} (Class 1) directories.
+  \item Convert each image to grayscale; extract two features: pixel mean and pixel standard deviation.
+  \item Split the dataset: 80\% training, 20\% testing (\texttt{np.random.seed(42)}).
+  \item For each class, estimate:
+    \begin{itemize}
+      \item Class mean vector $\boldsymbol{\mu}_c$ and covariance matrix $\boldsymbol{\Sigma}_c$.
+      \item Prior probability $P(\omega_c)$ from class frequency.
+    \end{itemize}
+  \item Compute the multivariate Gaussian likelihood:
+    \[
+      p(\mathbf{x} \mid \omega_c) = \frac{1}{\sqrt{(2\pi)^D |\boldsymbol{\Sigma}_c|}}
+      \exp\!\left(-\tfrac{1}{2}(\mathbf{x}-\boldsymbol{\mu}_c)^T \boldsymbol{\Sigma}_c^{-1}(\mathbf{x}-\boldsymbol{\mu}_c)\right)
+    \]
+  \item Compute posterior $\propto$ likelihood $\times$ prior; predict class as $\arg\max$.
+  \item Evaluate: Accuracy, Precision, Recall, F1-Score, Confusion Matrix.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+\begin{itemize}
+  \item Total images: 1545 \quad (Flower = 843, Dog = 702)
+  \item Train: 1236 \quad Test: 309
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Test Accuracy  & 52.10\% \\
+Precision      & 0.5140  \\
+Recall         & 0.3642  \\
+F1-Score       & 0.4264  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Confusion Matrix:
+\[
+\begin{bmatrix} TN = 106 & FP = 52 \\ FN = 96 & TP = 55 \end{bmatrix}
+\]
+
+\noindent \textbf{Plots generated:} 1D class-conditional Gaussian PDFs (pixel mean and std dev),
+and a 2D scatter plot of test samples with class mean markers.
+
+\subsection*{Result}
+A two-class Gaussian Bayes Classifier was implemented from scratch using pixel mean and standard
+deviation as features. The classifier achieved an accuracy of 52.10\% on the Flower vs.\ Dog dataset.
+The moderate accuracy is due to the simplicity of the features; the Bayesian framework with
+multivariate Gaussian class-conditionals and estimated priors was successfully demonstrated.
+
+\newpage
+
+%=============================================================
+\section{Linear Discriminant Classifier vs.\ Gaussian Bayes}
+%=============================================================
+
+\subsection*{Aim}
+To implement a Linear Discriminant Classifier and compare it with the Bayesian classifier by
+visualizing decision boundaries.
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Load images from \texttt{fruit/} (Class 0) and \texttt{dog/} (Class 1); extract pixel mean and std dev.
+  \item Split dataset: 80\% train, 20\% test.
+  \item \textbf{LDA fit:}
+    \begin{itemize}
+      \item Compute class means $\boldsymbol{\mu}_c$ and priors $P(\omega_c)$.
+      \item Compute pooled scalar variance: $\sigma^2 = \frac{\sum_c \sum_{\mathbf{x} \in \omega_c} \|\mathbf{x}-\boldsymbol{\mu}_c\|^2}{N \cdot D}$
+      \item Compute weight vectors $\mathbf{w}_c = \boldsymbol{\mu}_c / \sigma^2$ and biases $w_{c0} = -\frac{\|\boldsymbol{\mu}_c\|^2}{2\sigma^2} + \ln P(\omega_c)$.
+    \end{itemize}
+  \item \textbf{LDA predict:} Classify as class 1 if $g_1(\mathbf{x}) > g_0(\mathbf{x})$, where $g_c(\mathbf{x}) = \mathbf{w}_c^T\mathbf{x} + w_{c0}$.
+  \item \textbf{Gaussian Bayes:} Fit and predict as in Experiment 2.
+  \item Evaluate both classifiers; plot side-by-side decision boundary maps.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Classifier} & \textbf{Accuracy} & \textbf{Boundary Type} \\
+\midrule
+Linear Discriminant (LDA) & 82.40\% & Straight line (linear) \\
+Gaussian Bayes            & 94.72\% & Curved (quadratic)     \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent LDA Parameters:
+\begin{itemize}
+  \item Shared variance $\sigma^2 = 539.8042$
+  \item Boundary direction vector $(\mathbf{w}_1 - \mathbf{w}_0) = [-0.084,\ -0.028]$
+  \item Boundary offset $b = 13.1076$
+\end{itemize}
+
+\noindent \textbf{Plot generated:} Side-by-side decision boundary maps showing LDA's straight boundary
+vs.\ Bayes' curved boundary, overlaid with training and test data points.
+
+\subsection*{Result}
+Both classifiers were implemented and compared on the Fruit vs.\ Dog dataset. The Gaussian Bayes
+classifier outperformed LDA (94.72\% vs.\ 82.40\%), because the two classes have significantly
+different covariance structures. LDA's assumption of a shared isotropic variance is too restrictive,
+while Bayes with class-specific covariances produces a more flexible decision boundary.
+
+\newpage
+
+%=============================================================
+\section{Maximum Likelihood Estimation (MLE)}
+%=============================================================
+
+\subsection*{Aim}
+To develop and evaluate parametric estimation techniques employing Maximum Likelihood
+Estimation (MLE).
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Generate $N = 200$ samples from $\mathcal{N}(\mu=50,\ \sigma=15)$ using \texttt{np.random.normal}.
+  \item \textbf{Case 1 --- $\sigma$ known, estimate $\mu$:}
+    \begin{itemize}
+      \item MLE estimator: $\hat{\mu} = \frac{1}{N}\sum_{k=1}^{N} x_k$
+      \item Compute log-likelihood $l(\hat{\mu})$ and verify $\frac{\partial l}{\partial \mu} = 0$.
+    \end{itemize}
+  \item \textbf{Case 2 --- Both $\mu$ and $\sigma^2$ unknown:}
+    \begin{itemize}
+      \item MLE: $\hat{\mu} = \frac{1}{N}\sum x_k$, \quad $\hat{\sigma}^2 = \frac{1}{N}\sum(x_k - \hat{\mu})^2$
+      \item Compute log-likelihood $l(\hat{\mu}, \hat{\sigma}^2)$.
+    \end{itemize}
+  \item Plot true Gaussian PDF vs.\ MLE-estimated PDF for both cases side by side.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Case} & \textbf{Parameter} & \textbf{True Value} & \textbf{MLE Estimate} \\
+\midrule
+\multirow{1}{*}{Case 1} & $\mu$ & 50.0 & \textbf{49.3884} \\
+\midrule
+\multirow{2}{*}{Case 2} & $\mu$    & 50.0 & \textbf{49.3884} \\
+                         & $\sigma$ & 15.0 & \textbf{13.9301} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item Log-likelihood (Case 1): $l(\hat{\mu}) = -811.6412$
+  \item Log-likelihood (Case 2): $l(\hat{\mu}, \hat{\sigma}) = -810.5981$
+\end{itemize}
+
+\noindent \textbf{Plot generated:} \texttt{mle\_results.png} --- two panels comparing the true
+Gaussian PDF against the MLE-estimated PDFs for Case 1 and Case 2.
+
+\subsection*{Result}
+MLE was successfully applied to estimate the parameters of a Gaussian distribution from 200
+synthetic samples. The estimated $\hat{\mu} = 49.39$ closely matches the true $\mu = 50$.
+The slight underestimation of $\sigma$ (13.93 vs.\ 15.0) is due to the biased MLE variance
+estimator, which divides by $N$ rather than $N-1$.
+
+\newpage
+
+%=============================================================
+\section{Non-Parametric Density Estimation using k-NN}
+%=============================================================
+
+\subsection*{Aim}
+To design and analyze non-parametric density estimation methods based on
+k-Nearest Neighbours (k-NN).
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Generate $N = 300$ samples from a Gaussian mixture:
+    $0.4 \cdot \mathcal{N}(20,5^2) + 0.6 \cdot \mathcal{N}(50,8^2)$.
+  \item Define a fine evaluation grid over the data range (500 points).
+  \item For each query point $x$ and each $k \in \{1, 5, 15, 30\}$:
+    \begin{itemize}
+      \item Compute distances: $|x - x_i|$ for all $x_i$ in data.
+      \item Find $d_k$ = distance to the $k$-th nearest neighbour.
+      \item Estimate density: $\hat{p}(x) = \dfrac{k}{n \cdot 2d_k}$
+    \end{itemize}
+  \item Compute MSE between estimated density and the true mixture PDF.
+  \item Plot estimated density vs.\ true PDF for each value of $k$.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+\textbf{k} & \textbf{MSE} & \textbf{Estimate Quality} \\
+\midrule
+1  & 0.047246 & Very spiky / noisy \\
+5  & 0.000154 & Noisy but improving \\
+15 & 0.000026 & Smooth \\
+30 & 0.000015 & Smoothest, best fit \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent \textbf{Plot generated:} \texttt{knn\_results.png} --- 4 panels showing the data
+histogram, true PDF, and k-NN estimate for each value of $k$.
+
+\subsection*{Result}
+Non-parametric k-NN density estimation was successfully implemented for a 1D Gaussian mixture.
+As $k$ increases, the density estimate becomes progressively smoother and converges closer
+to the true PDF (lower MSE). Very small $k$ (e.g., $k=1$) produces spiky, discontinuous
+estimates, while larger $k$ (e.g., $k=30$) gives a smooth, accurate approximation of the
+underlying distribution.
+
+\newpage
+
+%=============================================================
+\section{Dimensionality Reduction using PCA}
+%=============================================================
+
+\subsection*{Aim}
+To perform dimensionality reduction using Principal Component Analysis (PCA).
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Load the Iris dataset (150 samples, 4 features, 3 classes) using \texttt{sklearn}.
+  \item \textbf{Center the data:} $\mathbf{X}_{std} = \mathbf{X} - \bar{\mathbf{X}}$
+  \item \textbf{Compute covariance matrix:} $\mathbf{C} = \text{np.cov}(\mathbf{X}_{std},\ \text{rowvar=False})$ \quad (4$\times$4)
+  \item \textbf{Eigendecomposition:} \texttt{np.linalg.eigh(C)} --- obtain eigenvalues and eigenvectors.
+  \item Sort eigenvectors in descending order of eigenvalue.
+  \item Compute variance explained per component: $\frac{\lambda_i}{\sum \lambda} \times 100\%$.
+  \item Select top-2 eigenvectors to form projection matrix $\mathbf{W}$ (4$\times$2).
+  \item Project data to 2D: $\mathbf{X}_{2D} = \mathbf{X}_{std} \cdot \mathbf{W}$
+  \item Plot: eigenvalue bar chart, cumulative variance curve, 2D scatter of projected data.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+
+\begin{center}
+\begin{tabular}{lccr}
+\toprule
+\textbf{Component} & \textbf{Eigenvalue} & \textbf{Variance Explained} & \textbf{Cumulative} \\
+\midrule
+PC1 & 4.2282 & 92.46\% & 92.46\% \\
+PC2 & 0.2427 &  5.31\% & 97.77\% \\
+PC3 & 0.0782 &  1.71\% & 99.48\% \\
+PC4 & 0.0238 &  0.52\% & 100.00\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{Variance retained with PC1 + PC2: 97.77\%}
+  \item PC1 eigenvector: $[-0.3614,\ 0.0845,\ -0.8567,\ -0.3583]$
+  \item PC2 eigenvector: $[\ 0.6566,\ 0.7302,\ -0.1734,\ -0.0755]$
+  \item Reduced data sample (first row): $[2.6841,\ 0.3194]$
+\end{itemize}
+
+\noindent \textbf{Plot generated:} \texttt{pca\_results.png} --- eigenvalue bar chart, cumulative
+variance curve with 95\% threshold line, and 2D scatter plot of three Iris classes.
+
+\subsection*{Result}
+PCA was successfully applied to reduce the 4-dimensional Iris dataset to 2 dimensions while
+retaining 97.77\% of the total variance. The 2D scatter plot shows that Setosa is clearly
+separated from Versicolor and Virginica. PC1 alone captures 92.46\% of the total variation,
+confirming that the data has a dominant principal direction corresponding to petal dimensions.
+
+\newpage
+
+%=============================================================
+\section{Object Detection using YOLOv8}
+%=============================================================
+
+\subsection*{Aim}
+To develop and demonstrate an object detection system.
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Load a test image using \texttt{skimage.data.cat()} (built-in RGB cat image).
+  \item Load the pre-trained YOLOv8s model: \texttt{YOLO('yolov8s.pt')}.
+  \item Run inference with thresholds:
+    \begin{itemize}
+      \item \textbf{conf = 0.35} --- minimum confidence score to retain a detection.
+      \item \textbf{iou = 0.50} --- IoU threshold for Non-Maximum Suppression (NMS).
+      \item \textbf{imgsz = 640} --- input image size for the model.
+    \end{itemize}
+  \item For each detected bounding box, extract:
+    \begin{itemize}
+      \item Coordinates $[x_1, y_1, x_2, y_2]$ via \texttt{box.xyxy[0]}.
+      \item Confidence score via \texttt{box.conf[0]}.
+      \item Class label via \texttt{result.names[int(box.cls[0])]}.
+    \end{itemize}
+  \item Draw annotated bounding boxes using \texttt{result.plot()}.
+  \item Display the annotated image using \texttt{matplotlib}.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+
+\begin{verbatim}
+Successfully detected 1 object(s).
+
+Object 1: Cat | Confidence: 0.87
+         | Box: (x1=22.3, y1=5.8, x2=595.0, y2=478.0)
+\end{verbatim}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Model              & YOLOv8s (pre-trained on COCO) \\
+Test image         & \texttt{skimage.data.cat()} \\
+Confidence threshold & 0.35 \\
+IoU threshold      & 0.50 \\
+Detected class     & Cat \\
+Confidence score   & $\approx 0.87$ \\
+Objects detected   & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent \textbf{Visual output:} Image of a cat with a bounding box drawn around it,
+labelled ``cat 0.87''.
+
+\subsection*{Result}
+An object detection system was successfully implemented using the pre-trained YOLOv8s model.
+The model correctly detected the cat in the test image with high confidence ($\approx 0.87$).
+The bounding box accurately localised the object within the image. YOLO's single-pass
+architecture enables real-time object detection, making it highly suitable for practical
+object recognition applications.
+
+\newpage
+
+%=============================================================
+\section{Object Recognition and Motion Tracking using Video}
+%=============================================================
+
+\subsection*{Aim}
+To design an object recognition and motion tracking system using video sequences.
+
+\subsection*{Algorithm}
+\begin{enumerate}[leftmargin=*, label=\arabic*.]
+  \item Open the webcam using \texttt{cv2.VideoCapture(0)}.
+  \item Define HSV colour range for the target colour (orange):
+    \begin{itemize}
+      \item Lower bound: \texttt{[5, 120, 80]}
+      \item Upper bound: \texttt{[25, 255, 255]}
+    \end{itemize}
+  \item For each frame captured from the webcam:
+    \begin{enumerate}[label=\alph*.]
+      \item Convert frame from BGR to HSV: \texttt{cv2.cvtColor(frame, COLOR\_BGR2HSV)}.
+      \item Create binary mask of the target colour: \texttt{cv2.inRange(hsv, lower, upper)}.
+      \item Find contours in the mask: \texttt{cv2.findContours(...)}.
+      \item Select the largest contour (area $> 500$ pixels) as the tracked object.
+      \item Compute bounding rectangle: \texttt{cv2.boundingRect(largest)}.
+      \item Draw the bounding box and label on the original frame.
+      \item Display the annotated frame using \texttt{cv2.imshow()}.
+    \end{enumerate}
+  \item Repeat for every frame until the user presses \texttt{q} to quit.
+  \item Release camera and close windows.
+\end{enumerate}
+
+\subsection*{Output Obtained}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Input source          & Webcam (\texttt{VideoCapture(0)}) \\
+Target colour         & Orange \\
+HSV lower bound       & \texttt{[5, 120, 80]} \\
+HSV upper bound       & \texttt{[25, 255, 255]} \\
+Minimum contour area  & 500 pixels$^2$ \\
+Bounding box colour   & Orange (\texttt{BGR: 0, 140, 255}) \\
+Tracking output       & Live bounding box + ``orange'' label \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent \textbf{Visual output:} A live camera window titled
+\textit{``Orange Tracker [q to quit]''}. When an orange object is held in front of the
+camera, a bounding rectangle appears around it in real time with the label ``orange''
+displayed above the box. Pressing \texttt{q} closes the window.
+
+\subsection*{Result}
+A real-time colour-based object tracking system was successfully implemented using OpenCV.
+By converting each video frame to HSV colour space and applying colour thresholding followed
+by contour detection, the system accurately locates and tracks an orange object in a live
+webcam feed. The bounding box updates correctly in every frame, demonstrating a practical
+object recognition and motion tracking pipeline.
+
+\end{document}

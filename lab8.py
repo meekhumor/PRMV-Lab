@@ -7,7 +7,6 @@ model = YOLO('yolov8s.pt')
 
 results = model(image, conf=0.35, iou=0.5, imgsz=640)  # conf = confidence threshold, iou = NMS overlap threshold
 
-# 4. Extract and Print Bounding Box Coordinates
 result = results[0]
 print(f'Successfully detected {len(result.boxes)} object(s).\n')
 
